@@ -1,0 +1,6 @@
+# passage embeddings, built on first use (~250 MB per split)
+data/*/rag_cache
+# the test split stays private until its release (31 May 2027)
+data/test/
+__pycache__/
+runs/

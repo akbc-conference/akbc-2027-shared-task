@@ -1,0 +1,5 @@
+# Python 3.12; versions used when the scoring was checked against the BeQu pipeline (2026-11-19)
+openai==2.21.0
+loguru==0.7.3
+numpy==2.2.6
+tqdm==4.67.3
