@@ -858,6 +858,7 @@ SAMPLE_SIZE = 1000
 TOP_K = 10
 JUDGE_WORKERS = 8
 JUDGE_RPM = 280  # the SCADS key allows 300 requests per minute
+INDEX_ATTEMPTS = 3  # embedding attempts when a passage index has to be built
 PRECISION = "Precision (Precision (RAG))"  # metric labels as in the BeQu result files
 RECALL = "Recall (Wikipedia+Web)"
 SOURCE = "elicited_triples"  # the submission's name in the detailed results (BeQu: the CSV file name)
@@ -990,22 +991,47 @@ class Scorer:
             yield from executor.map(fn, items)
 
     # --- precision ----------------------------------------------------------------------------------
+    @staticmethod
+    def _index_complete(rag):
+        """True if every passage of the index has an embedding (an index without passages is complete)."""
+        if not rag.passages:
+            return True
+        return (rag.embeddings is not None and len(rag.embeddings) == len(rag.passages)
+                and all(e is not None for e in rag.embeddings))
+
     def _rag_index(self, subject_name, entry):
-        """The entity's passage index, from rag_cache or built (embeddings via OpenRouter) and cached."""
+        """The entity's passage index, from rag_cache or built (embeddings via OpenRouter) and cached.
+
+        Only a complete index is used or saved: when an embedding call fails, cache_embeddings leaves those
+        passages without embeddings, and such an index would make retrieval fail for this entity on every run.
+        A new index is embedded up to INDEX_ATTEMPTS times; if it is still incomplete, nothing is saved and
+        an error is raised, so the entity's triples count as errors and the next run builds the index again.
+        """
         cache_path = GroundTruthRAG.get_cache_path_for_entity(self.rag_cache_dir, subject_name)
         rag = GroundTruthRAG.load_from_disk(cache_path)
-        if rag is not None:  # the normal case: the index ships with the corpus, nothing is written
+        if rag is not None and self._index_complete(rag):  # the normal case: the index exists, nothing is written
             return rag
         os.makedirs(os.path.dirname(cache_path), exist_ok=True)
         fd = os.open(cache_path + ".lock", os.O_CREAT | os.O_RDWR)
         try:
             fcntl.flock(fd, fcntl.LOCK_EX)
             try:
-                rag = GroundTruthRAG.load_from_disk(cache_path)
-                if rag is None:
+                rag = GroundTruthRAG.load_from_disk(cache_path)  # another worker may have built it meanwhile
+                if rag is None or not self._index_complete(rag):
+                    if rag is not None:
+                        logger.warning(f"Incomplete passage index for {subject_name}: building it again")
                     rag = GroundTruthRAG()
                     rag.build_index(entry)
-                    rag.cache_embeddings()
+                    for attempt in range(1, INDEX_ATTEMPTS + 1):
+                        rag.cache_embeddings()
+                        if self._index_complete(rag):
+                            break
+                        logger.warning(f"Embedding failed for some passages of {subject_name} "
+                                       f"(attempt {attempt}/{INDEX_ATTEMPTS})")
+                        time.sleep(10 * attempt)
+                    else:
+                        raise RuntimeError(f"passage embeddings incomplete after {INDEX_ATTEMPTS} attempts; "
+                                           f"index not saved, the next run builds it again")
                     try:
                         rag.save_to_disk(cache_path)
                     except Exception as e:
