@@ -1337,7 +1337,7 @@ def score_submission(out, split, data_dir):
 def main():
     ap = argparse.ArgumentParser(description="Evaluate an AKBC 2027 shared task submission: check it, then score it.")
     ap.add_argument("submission", help="CSV with columns subject, predicate, object")
-    ap.add_argument("--split", required=True, choices=["train", "dev", "test"])
+    ap.add_argument("--split", required=True, choices=["dev", "test"])
     ap.add_argument("--out", required=True, help="output folder (rerun with the same folder to resume)")
     ap.add_argument("--data_dir", default=os.path.join(HERE, "data"),
                     help="folder with <split>/entities.json and <split>/reference_corpus.json.xz (default: ./data)")

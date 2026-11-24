@@ -1,19 +1,19 @@
 {
   "split": "dev",
-  "built": "2026-11-19T14:19:28+0100",
+  "built": "2026-11-24T15:12:19+0100",
   "entities": 500,
-  "reference_triples_wikipedia": 7221,
-  "reference_triples_web": 39056,
-  "web_documents": 7229,
+  "reference_triples_wikipedia": 7479,
+  "reference_triples_web": 37833,
+  "web_documents": 7474,
   "sources": {
     "entity_list": "dev_500.json",
-    "entity_list_sha256": "f6ed5c0b6e88c63623519d80c549258e517c5e654a0fb778ef14701d1b74d9ab",
+    "entity_list_sha256": "ed8beb10068b9762d23ccc2bae547bbce9df4232aed85d0aac52cdd6ceb524b1",
     "corpus": "GT.json",
-    "corpus_sha256": "34ca02eec944dd24f7f0bf627072aacef15b59f4ac1a59763a26bce19331d4c4",
+    "corpus_sha256": "8b561873ac9c0b77778f67d52abf789ea00f5bbb1b94319bfc0982d713fc91fd",
     "corpus_entities": 500
   },
   "files": {
-    "entities.json": "346032366c827a647a8167f69b3e6d67c6f1b3920fca57ddc57bd301ee496973",
-    "reference_corpus.json.xz": "a24a9389c15d0a0e6b93de8b34872c6f548fa13316e0a2b066264106d42dce07"
+    "entities.json": "aeb6b77be929ce6d211017bd23c34cf5d61f63e7c4d7c8eab091dbdffff6005f",
+    "reference_corpus.json.xz": "47e34ed347483125c099a0da7c3872a1d4fd1c8e5117455e25ca0aa3946ace07"
   }
 }
